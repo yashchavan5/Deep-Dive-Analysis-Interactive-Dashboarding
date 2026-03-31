@@ -1,0 +1,599 @@
+s<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse Analytics — Business Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#0d0f14;--surface:#161920;--surface2:#1e2230;--surface3:#252a3a;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#f0f2f8;--text2:#8b92a8;--text3:#5a6178;--accent:#4f8fff;--accent2:#7c3aed;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--teal:#06b6d4;--purple:#a855f7}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+h1,h2,h3,h4{font-family:'Syne',sans-serif}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{padding:32px;overflow-x:hidden}
+.logo{padding:0 20px 28px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:16px;height:16px;fill:white}
+.logo-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.nav-section{padding:0 12px;margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--text2);transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(79,143,255,.12);color:var(--accent)}
+.nav-item svg{width:15px;height:15px;opacity:.7;flex-shrink:0}
+.nav-item.active svg{opacity:1}
+.filter-section{padding:20px 20px 0;border-top:1px solid var(--border);margin-top:20px}
+.filter-section h4{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.filter-group{margin-bottom:14px}
+.filter-group label{font-size:12px;color:var(--text2);display:block;margin-bottom:6px}
+.filter-group select{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 10px;border-radius:6px;outline:none;cursor:pointer}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.page-subtitle{font-size:13.5px;color:var(--text2);margin-top:4px}
+.header-actions{display:flex;gap:10px;align-items:center}
+.btn{padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+.date-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:28px;width:fit-content}
+.date-tab{padding:6px 14px;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--text2);transition:all .15s;font-weight:500}
+.date-tab.active{background:var(--surface3);color:var(--text)}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.kpi-card:hover{border-color:var(--border2)}
+.kpi-card.selected{border-color:var(--accent)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-card.c1::before{background:var(--accent)}
+.kpi-card.c2::before{background:var(--green)}
+.kpi-card.c3::before{background:var(--amber)}
+.kpi-card.c4::before{background:var(--purple)}
+.kpi-card.c5::before{background:var(--teal)}
+.kpi-label{font-size:11.5px;color:var(--text2);margin-bottom:8px;font-weight:500;letter-spacing:.02em}
+.kpi-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.5px}
+.kpi-meta{display:flex;align-items:center;gap:6px;margin-top:6px}
+.kpi-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+.kpi-badge.up{background:rgba(34,211,160,.12);color:var(--green)}
+.kpi-badge.down{background:rgba(244,63,94,.12);color:var(--red)}
+.kpi-period{font-size:11px;color:var(--text3)}
+.kpi-sparkline{position:absolute;bottom:0;right:0;width:80px;height:40px;opacity:.4}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
+.charts-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.card-title{font-family:'Syne',sans-serif;font-size:14.5px;font-weight:600}
+.card-subtitle{font-size:12px;color:var(--text3);margin-top:3px}
+.card-tag{font-size:11px;background:var(--surface3);color:var(--text2);padding:4px 10px;border-radius:20px}
+.chart-wrap{position:relative}
+.cohort-table{width:100%;font-size:12px;border-collapse:collapse}
+.cohort-table th{text-align:left;color:var(--text3);font-weight:500;padding:6px 8px;font-size:11px}
+.cohort-table td{padding:6px 8px;text-align:center;border-radius:4px;font-weight:500;font-size:11.5px}
+.cohort-table .cohort-label{text-align:left;color:var(--text2);font-size:11.5px}
+.funnel-stage{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.funnel-label-wrap{width:120px;text-align:right}
+.funnel-label{font-size:12px;color:var(--text2)}
+.funnel-count{font-size:13px;font-weight:600;color:var(--text)}
+.funnel-bar-wrap{flex:1;height:32px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative}
+.funnel-bar{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font-size:11.5px;font-weight:600;transition:width .8s cubic-bezier(.25,.46,.45,.94)}
+.funnel-drop{font-size:11px;color:var(--red);width:50px;text-align:right}
+.segment-list{display:flex;flex-direction:column;gap:10px}
+.segment-row{display:flex;align-items:center;gap:12px}
+.segment-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.segment-name{font-size:12.5px;flex:1;color:var(--text2)}
+.segment-bar-wrap{width:120px;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.segment-bar{height:100%;border-radius:3px}
+.segment-pct{font-size:12px;font-weight:600;width:36px;text-align:right;color:var(--text)}
+.segment-rev{font-size:11px;color:var(--text3);width:60px;text-align:right}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;color:var(--text3);font-weight:500;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border)}
+.data-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+.data-table tr:hover td{background:var(--surface2);color:var(--text)}
+.data-table .td-name{color:var(--text);font-weight:500}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.pill.high{background:rgba(244,63,94,.1);color:var(--red)}
+.pill.med{background:rgba(245,158,11,.1);color:var(--amber)}
+.pill.low{background:rgba(34,211,160,.1);color:var(--green)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.charts-row{grid-template-columns:1fr}.charts-row-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z"/></svg></div>
+      <div><div class="logo-name">Pulse</div><div class="logo-sub">Analytics Suite</div></div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" onclick="switchView('overview',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>Dashboard
+    </div>
+    <div class="nav-item" onclick="switchView('kpis',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>KPI Report
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Deep Dive</div>
+    <div class="nav-item" onclick="switchView('cohort',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="14" rx="2"/><path d="M5 8h6M8 5v6"/></svg>Cohort Analysis
+    </div>
+    <div class="nav-item" onclick="switchView('funnel',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12l-4 5v5l-4-2V8L2 3z"/></svg>Funnel Analysis
+    </div>
+    <div class="nav-item" onclick="switchView('segments',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 2v6l4 4"/></svg>Segmentation
+    </div>
+  </div>
+  <div class="filter-section">
+    <h4>Filters</h4>
+    <div class="filter-group"><label>Region</label>
+      <select onchange="applyFilters()"><option>All Regions</option><option>North America</option><option>Europe</option><option>APAC</option></select>
+    </div>
+    <div class="filter-group"><label>Product Line</label>
+      <select onchange="applyFilters()"><option>All Products</option><option>Pro Plan</option><option>Enterprise</option><option>Starter</option></select>
+    </div>
+    <div class="filter-group"><label>Customer Type</label>
+      <select onchange="applyFilters()"><option>All Types</option><option>New Customers</option><option>Returning</option></select>
+    </div>
+  </div>
+</aside>
+
+<main class="main" id="mainContent">
+
+<!-- OVERVIEW -->
+<div id="view-overview">
+  <div class="page-header">
+    <div><h1 class="page-title">Business Overview</h1><p class="page-subtitle">Real-time KPIs and performance analytics · FY 2024</p></div>
+    <div class="header-actions"><button class="btn">Export PDF</button><button class="btn primary">Live Mode</button></div>
+  </div>
+  <div class="date-tabs">
+    <div class="date-tab" onclick="setDateRange('7d',this)">7D</div>
+    <div class="date-tab active" onclick="setDateRange('30d',this)">30D</div>
+    <div class="date-tab" onclick="setDateRange('90d',this)">90D</div>
+    <div class="date-tab" onclick="setDateRange('1y',this)">1Y</div>
+    <div class="date-tab" onclick="setDateRange('ytd',this)">YTD</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi-card c1 selected" onclick="highlightKPI(this)">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value" id="kv-revenue">$4.82M</div>
+      <div class="kpi-meta"><span class="kpi-badge up">↑ 18.4%</span><span class="kpi-period">vs last period</span></div>
+      <canvas class="kpi-sparkline" id="sp1"></canvas>
+    </div>
+    <div class="kpi-card c2" onclick="highlightKPI(this)">
+      <div class="kpi-label">Conversion Rate</div>
+      <div class="kpi-value">6.8%</div>
+      <div class="kpi-meta"><span class="kpi-badge up">↑ 0.9pp</span><span class="kpi-period">vs last period</span></div>
+      <canvas class="kpi-sparkline" id="sp2"></canvas>
+    </div>
+    <div class="kpi-card c3" onclick="highlightKPI(this)">
+      <div class="kpi-label">Churn Rate</div>
+      <div class="kpi-value">2.3%</div>
+      <div class="kpi-meta"><span class="kpi-badge up">↓ 0.4pp</span><span class="kpi-period">vs last period</span></div>
+      <canvas class="kpi-sparkline" id="sp3"></canvas>
+    </div>
+    <div class="kpi-card c4" onclick="highlightKPI(this)">
+      <div class="kpi-label">Avg. Order Value</div>
+      <div class="kpi-value">$284</div>
+      <div class="kpi-meta"><span class="kpi-badge up">↑ 12.1%</span><span class="kpi-period">vs last period</span></div>
+      <canvas class="kpi-sparkline" id="sp4"></canvas>
+    </div>
+    <div class="kpi-card c5" onclick="highlightKPI(this)">
+      <div class="kpi-label">Customer LTV</div>
+      <div class="kpi-value">$1,840</div>
+      <div class="kpi-meta"><span class="kpi-badge down">↓ 3.2%</span><span class="kpi-period">vs last period</span></div>
+      <canvas class="kpi-sparkline" id="sp5"></canvas>
+    </div>
+  </div>
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Revenue Trend</div><div class="card-subtitle">Monthly revenue with YoY comparison</div></div><span class="card-tag">MRR</span></div>
+      <div class="legend"><span class="legend-item"><span class="legend-dot" style="background:#4f8fff"></span>2024</span><span class="legend-item"><span class="legend-dot" style="background:#3a3f55"></span>2023</span></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="revenueChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Revenue Mix</div><div class="card-subtitle">By product plan</div></div></div>
+      <div class="chart-wrap" style="height:180px"><canvas id="donutChart"></canvas></div>
+      <div class="legend" style="margin-top:12px;margin-bottom:0">
+        <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>Enterprise 42%</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4f8fff"></span>Pro 35%</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#22d3a0"></span>Starter 23%</span>
+      </div>
+    </div>
+  </div>
+  <div class="charts-row-3">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">New vs Returning</div><div class="card-subtitle">Customer acquisition</div></div></div>
+      <div class="chart-wrap" style="height:180px"><canvas id="barStackedChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Conversion Funnel</div><div class="card-subtitle">Quick view</div></div></div>
+      <div style="padding-top:8px">
+        <div class="funnel-stage"><div class="funnel-label-wrap"><div class="funnel-label">Visitors</div></div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:rgba(79,143,255,.7)">48,200</div></div></div>
+        <div class="funnel-stage"><div class="funnel-label-wrap"><div class="funnel-label">Sign-ups</div></div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:62%;background:rgba(124,58,237,.7)">29,884</div></div></div>
+        <div class="funnel-stage"><div class="funnel-label-wrap"><div class="funnel-label">Trial</div></div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:38%;background:rgba(6,182,212,.7)">18,316</div></div></div>
+        <div class="funnel-stage"><div class="funnel-label-wrap"><div class="funnel-label">Paid</div></div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:18%;background:rgba(34,211,160,.7)">8,676</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Top Segments</div><div class="card-subtitle">By revenue share</div></div></div>
+      <div class="segment-list" style="margin-top:8px">
+        <div class="segment-row"><div class="segment-dot" style="background:#7c3aed"></div><div class="segment-name">Enterprise</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:84%;background:#7c3aed"></div></div><div class="segment-pct">42%</div></div>
+        <div class="segment-row"><div class="segment-dot" style="background:#4f8fff"></div><div class="segment-name">Power Users</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:70%;background:#4f8fff"></div></div><div class="segment-pct">35%</div></div>
+        <div class="segment-row"><div class="segment-dot" style="background:#22d3a0"></div><div class="segment-name">SMB</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:46%;background:#22d3a0"></div></div><div class="segment-pct">23%</div></div>
+        <div class="segment-row"><div class="segment-dot" style="background:#f59e0b"></div><div class="segment-name">Individual</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:20%;background:#f59e0b"></div></div><div class="segment-pct">10%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div><div class="card-title">Top Customers by LTV</div><div class="card-subtitle">Sorted by lifetime value · Q4 2024</div></div><button class="btn" style="font-size:12px;padding:6px 12px">View All</button></div>
+    <table class="data-table">
+      <thead><tr><th>Customer</th><th>Segment</th><th>Orders</th><th>AOV</th><th>LTV</th><th>Churn Risk</th><th>Trend</th></tr></thead>
+      <tbody>
+        <tr><td class="td-name">Acme Corp</td><td>Enterprise</td><td>48</td><td>$1,240</td><td>$59,520</td><td><span class="pill low">Low</span></td><td style="color:var(--green)">↑ 22%</td></tr>
+        <tr><td class="td-name">BrightPath Inc</td><td>Enterprise</td><td>32</td><td>$1,108</td><td>$35,456</td><td><span class="pill low">Low</span></td><td style="color:var(--green)">↑ 14%</td></tr>
+        <tr><td class="td-name">Vertex Systems</td><td>Pro</td><td>61</td><td>$520</td><td>$31,720</td><td><span class="pill med">Medium</span></td><td style="color:var(--amber)">→ 2%</td></tr>
+        <tr><td class="td-name">NovaTech Ltd</td><td>Pro</td><td>44</td><td>$680</td><td>$29,920</td><td><span class="pill low">Low</span></td><td style="color:var(--green)">↑ 9%</td></tr>
+        <tr><td class="td-name">Clearwave</td><td>Starter</td><td>88</td><td>$310</td><td>$27,280</td><td><span class="pill high">High</span></td><td style="color:var(--red)">↓ 8%</td></tr>
+        <tr><td class="td-name">Quantum Labs</td><td>Enterprise</td><td>19</td><td>$1,390</td><td>$26,410</td><td><span class="pill low">Low</span></td><td style="color:var(--green)">↑ 31%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- KPI REPORT -->
+<div id="view-kpis" style="display:none">
+  <div class="page-header"><div><h1 class="page-title">KPI Definitions &amp; Report</h1><p class="page-subtitle">Formal definitions, formulas, and business rationale</p></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <div class="card-title" style="margin-bottom:10px">1. Conversion Rate (CVR)</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;font-family:monospace;font-size:13px;color:var(--green);margin-bottom:12px">CVR = (Paid Customers / Total Visitors) × 100</div>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.7">Measures acquisition funnel effectiveness. A 1pp improvement at 48K monthly visitors = ~480 additional paying customers. SaaS benchmark: 3–5%; our target ≥7%.</p>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Current</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--accent)">6.8%</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Target</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--green)">7.5%</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div class="card-title" style="margin-bottom:10px">2. Customer Churn Rate</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;font-family:monospace;font-size:13px;color:var(--green);margin-bottom:12px">Churn = (Lost Customers / Start-of-Period) × 100</div>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.7">At 2.3% monthly churn, ~27% of customers leave annually. Reducing by 0.5pp adds ~$280K in retained revenue. Target: below 2% by Q2 2025.</p>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Current</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--amber)">2.3%</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Target</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--green)">&lt;2.0%</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green)">
+      <div class="card-title" style="margin-bottom:10px">3. Average Order Value (AOV)</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;font-family:monospace;font-size:13px;color:var(--green);margin-bottom:12px">AOV = Total Revenue / Number of Orders</div>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.7">Proxy for upsell effectiveness. A $50 AOV increase across 17K orders = $850K incremental annual revenue without new customers.</p>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Current</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--accent)">$284</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Target</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--green)">$320</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple)">
+      <div class="card-title" style="margin-bottom:10px">4. Customer Lifetime Value (LTV)</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;font-family:monospace;font-size:12px;color:var(--green);margin-bottom:12px">LTV = AOV × Purchase Frequency × Avg. Lifespan</div>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.7">Determines CAC ceiling. LTV:CAC should be ≥3:1. Current $1,840 LTV with $380 CAC gives a healthy 4.8:1 ratio. Downtrend warrants monitoring.</p>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Current</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--purple)">$1,840</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">LTV:CAC</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--green)">4.8×</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--teal);grid-column:span 2">
+      <div class="card-title" style="margin-bottom:10px">5. Monthly Recurring Revenue (MRR)</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;font-family:monospace;font-size:13px;color:var(--green);margin-bottom:12px">MRR = Σ(Active Subscriptions × Monthly Plan Price)</div>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.7">Core SaaS health metric. Net New MRR = New + Expansion − Churned − Contraction. Our Net New MRR of $142K/mo vs $380K Gross New MRR means churn consumes 37% of new revenue — a key H1 2025 optimization target.</p>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Current MRR</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--teal)">$401K</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Net New MRR</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--green)">$142K</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Churned MRR</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--red)">$238K</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;flex:1;text-align:center"><div style="font-size:11px;color:var(--text3)">Expansion MRR</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--amber)">$84K</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COHORT -->
+<div id="view-cohort" style="display:none">
+  <div class="page-header">
+    <div><h1 class="page-title">Cohort Retention Analysis</h1><p class="page-subtitle">Customer retention by acquisition month · survival curve analysis</p></div>
+    <select class="btn" style="padding:8px 14px" onchange="renderCohort()"><option>Retention %</option><option>Revenue $</option></select>
+  </div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div><div class="card-title">Monthly Cohort Heatmap</div><div class="card-subtitle">Each row = acquisition cohort. Each column = month since first purchase.</div></div></div>
+    <div style="overflow-x:auto"><table class="cohort-table" id="cohortTable"></table></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:16px;font-size:12px;color:var(--text3)">
+      <span>Low</span>
+      <div style="display:flex;gap:2px">
+        <div style="width:18px;height:12px;background:rgba(79,143,255,.1);border-radius:2px"></div>
+        <div style="width:18px;height:12px;background:rgba(79,143,255,.25);border-radius:2px"></div>
+        <div style="width:18px;height:12px;background:rgba(79,143,255,.45);border-radius:2px"></div>
+        <div style="width:18px;height:12px;background:rgba(79,143,255,.65);border-radius:2px"></div>
+        <div style="width:18px;height:12px;background:rgba(79,143,255,.85);border-radius:2px"></div>
+      </div>
+      <span>High</span>
+    </div>
+  </div>
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Retention Curves by Cohort</div><div class="card-subtitle">Average retention over 12 months</div></div></div>
+      <div class="chart-wrap" style="height:240px"><canvas id="cohortLineChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Month-1 Retention Trend</div><div class="card-subtitle">First-month retention improving</div></div></div>
+      <div class="chart-wrap" style="height:240px"><canvas id="m1RetentionChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div><div class="card-title">Cumulative LTV per Cohort</div><div class="card-subtitle">Avg. revenue per customer across months</div></div></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="cohortLTVChart"></canvas></div>
+  </div>
+</div>
+
+<!-- FUNNEL -->
+<div id="view-funnel" style="display:none">
+  <div class="page-header">
+    <div><h1 class="page-title">Conversion Funnel Analysis</h1><p class="page-subtitle">User drop-off visualization · acquisition to activation</p></div>
+    <select class="btn" style="padding:8px 14px" onchange="updateFunnel(this.value)">
+      <option value="main">Main Funnel</option><option value="onboarding">Onboarding</option><option value="checkout">Checkout</option>
+    </select>
+  </div>
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Full Acquisition Funnel</div><div class="card-subtitle">Monthly visitors to paid customers</div></div></div>
+      <div id="funnelViz" style="padding-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Stage Conversion Rates</div><div class="card-subtitle">Step-to-step conversion %</div></div></div>
+      <div class="chart-wrap" style="height:260px"><canvas id="funnelBarChart"></canvas></div>
+    </div>
+  </div>
+  <div class="charts-row-3">
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Drop-off by Device</div><div class="chart-wrap" style="height:160px"><canvas id="deviceChart"></canvas></div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Drop-off by Source</div><div class="chart-wrap" style="height:160px"><canvas id="sourceChart"></canvas></div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Time-to-Convert</div><div class="chart-wrap" style="height:160px"><canvas id="timeChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div><div class="card-title">Funnel Performance Over Time</div><div class="card-subtitle">Weekly conversion rates at each stage</div></div></div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#4f8fff"></span>Visitor→Signup</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#22d3a0"></span>Signup→Trial</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#a855f7"></span>Trial→Paid</span>
+    </div>
+    <div class="chart-wrap" style="height:200px"><canvas id="funnelTrendChart"></canvas></div>
+  </div>
+</div>
+
+<!-- SEGMENTS -->
+<div id="view-segments" style="display:none">
+  <div class="page-header">
+    <div><h1 class="page-title">Customer Segmentation</h1><p class="page-subtitle">RFM-based clustering · behavioral and value segments</p></div>
+    <button class="btn primary" onclick="renderSegmentCharts()">Refresh Clusters</button>
+  </div>
+  <div class="charts-row" style="margin-bottom:18px">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">RFM Scatter Plot</div><div class="card-subtitle">Recency vs Frequency, sized by Monetary value</div></div></div>
+      <div class="chart-wrap" style="height:280px"><canvas id="scatterChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Segment Distribution</div><div class="card-subtitle">Customers and revenue by segment</div></div></div>
+      <div class="chart-wrap" style="height:160px"><canvas id="segmentBarChart"></canvas></div>
+      <div style="margin-top:16px">
+        <div class="segment-list">
+          <div class="segment-row"><div class="segment-dot" style="background:#4f8fff"></div><div class="segment-name">Champions</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:84%;background:#4f8fff"></div></div><div class="segment-pct">22%</div><div class="segment-rev">$2.1M</div></div>
+          <div class="segment-row"><div class="segment-dot" style="background:#22d3a0"></div><div class="segment-name">Loyal</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:64%;background:#22d3a0"></div></div><div class="segment-pct">28%</div><div class="segment-rev">$1.4M</div></div>
+          <div class="segment-row"><div class="segment-dot" style="background:#f59e0b"></div><div class="segment-name">Potential</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:48%;background:#f59e0b"></div></div><div class="segment-pct">19%</div><div class="segment-rev">$680K</div></div>
+          <div class="segment-row"><div class="segment-dot" style="background:#a855f7"></div><div class="segment-name">At Risk</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:36%;background:#a855f7"></div></div><div class="segment-pct">16%</div><div class="segment-rev">$420K</div></div>
+          <div class="segment-row"><div class="segment-dot" style="background:#f43f5e"></div><div class="segment-name">Lost</div><div class="segment-bar-wrap"><div class="segment-bar" style="width:24%;background:#f43f5e"></div></div><div class="segment-pct">15%</div><div class="segment-rev">$180K</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="charts-row-3">
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Recency Distribution</div><div class="chart-wrap" style="height:160px"><canvas id="recencyChart"></canvas></div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Frequency Distribution</div><div class="chart-wrap" style="height:160px"><canvas id="freqChart"></canvas></div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Monetary Distribution</div><div class="chart-wrap" style="height:160px"><canvas id="monetaryChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div><div class="card-title">Segment Action Recommendations</div><div class="card-subtitle">Strategic playbook per segment</div></div></div>
+    <table class="data-table">
+      <thead><tr><th>Segment</th><th>Size</th><th>Avg LTV</th><th>Recommended Action</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="td-name" style="color:#4f8fff">Champions</td><td>2,860</td><td>$3,420</td><td>Reward &amp; seek referrals</td><td><span class="pill low">P1</span></td></tr>
+        <tr><td class="td-name" style="color:#22d3a0">Loyal</td><td>3,640</td><td>$2,180</td><td>Upsell to Enterprise</td><td><span class="pill low">P1</span></td></tr>
+        <tr><td class="td-name" style="color:#f59e0b">Potential Loyalist</td><td>2,470</td><td>$1,050</td><td>Loyalty program enroll</td><td><span class="pill med">P2</span></td></tr>
+        <tr><td class="td-name" style="color:#a855f7">At Risk</td><td>2,080</td><td>$820</td><td>Win-back campaign now</td><td><span class="pill high">P0</span></td></tr>
+        <tr><td class="td-name" style="color:#f43f5e">Lost</td><td>1,950</td><td>$290</td><td>Survey &amp; sunset</td><td><span class="pill med">P3</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+const C={};
+const views=['overview','kpis','cohort','funnel','segments'];
+
+function switchView(v,el){
+  views.forEach(n=>{ document.getElementById('view-'+n).style.display=n===v?'block':'none'; });
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(v==='cohort'){ setTimeout(()=>{ renderCohort(); renderCohortCharts(); },50); }
+  if(v==='funnel'){ setTimeout(()=>{ renderFunnel(); renderFunnelCharts(); },50); }
+  if(v==='segments'){ setTimeout(()=>{ renderSegmentCharts(); },50); }
+}
+
+function setDateRange(range,el){
+  document.querySelectorAll('.date-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const m={'7d':.25,'30d':1,'90d':2.8,'1y':12,'ytd':9.2}[range]||1;
+  document.getElementById('kv-revenue').textContent='$'+(4.82*m).toFixed(2)+'M';
+}
+
+function highlightKPI(el){
+  document.querySelectorAll('.kpi-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function applyFilters(){ /* filter logic would go here */ }
+
+function renderSparkline(id,data,color){
+  const canvas=document.getElementById(id); if(!canvas) return;
+  const ctx=canvas.getContext('2d'), w=canvas.width=80, h=canvas.height=40;
+  const mn=Math.min(...data), mx=Math.max(...data);
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.lineJoin='round';
+  ctx.beginPath();
+  data.forEach((v,i)=>{ const x=(i/(data.length-1))*w, y=h-((v-mn)/(mx-mn||1))*(h*.8)-h*.1; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+}
+
+function renderRevenueChart(){
+  const ctx=document.getElementById('revenueChart'); if(!ctx) return;
+  if(C.rev) C.rev.destroy();
+  C.rev=new Chart(ctx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[
+    {label:'2024',data:[320,358,401,382,445,490,468,512,538,574,601,642],borderColor:'#4f8fff',backgroundColor:'rgba(79,143,255,.08)',fill:true,tension:.4,pointRadius:3},
+    {label:'2023',data:[280,295,310,298,325,348,362,380,395,408,422,445],borderColor:'#3a3f55',fill:false,tension:.4,pointRadius:0,borderDash:[4,4]}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e2230',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#f0f2f8',bodyColor:'#8b92a8',callbacks:{label:c=>'$'+c.parsed.y+'K'}}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:11},callback:v=>'$'+v+'K'}}}}});
+}
+
+function renderDonutChart(){
+  const ctx=document.getElementById('donutChart'); if(!ctx) return;
+  if(C.donut) C.donut.destroy();
+  C.donut=new Chart(ctx,{type:'doughnut',data:{labels:['Enterprise','Pro','Starter'],datasets:[{data:[42,35,23],backgroundColor:['#7c3aed','#4f8fff','#22d3a0'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}});
+}
+
+function renderStackedBar(){
+  const ctx=document.getElementById('barStackedChart'); if(!ctx) return;
+  if(C.stk) C.stk.destroy();
+  C.stk=new Chart(ctx,{type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[
+    {label:'New',data:[420,480,395,510,560,490],backgroundColor:'rgba(79,143,255,.75)',borderRadius:4},
+    {label:'Returning',data:[280,310,340,380,390,420],backgroundColor:'rgba(34,211,160,.5)',borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#5a6178',font:{size:10}}},y:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}}}}}});
+}
+
+// COHORT
+const cohortMonths=['Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24'];
+const cohortRet=[[100,68,54,48,43,39,36,33,31,29,27,25],[100,71,57,51,46,42,38,35,33,30,28],[100,73,59,53,48,44,40,37,35,32],[100,74,61,55,50,46,42,39,37],[100,76,63,57,52,48,44,41],[100,78,65,59,54,50,46]];
+
+function renderCohort(){
+  const t=document.getElementById('cohortTable'); if(!t) return;
+  let h='<thead><tr><th>Cohort</th>';
+  for(let i=0;i<=11;i++) h+=`<th>M${i}</th>`;
+  h+='</tr></thead><tbody>';
+  cohortMonths.forEach((m,ri)=>{
+    h+=`<tr><td class="cohort-label">${m}</td>`;
+    for(let ci=0;ci<=11;ci++){
+      const v=cohortRet[ri]&&cohortRet[ri][ci];
+      if(v!==undefined){ const a=v/100; h+=`<td style="background:rgba(79,143,255,${(a*.8).toFixed(2)});color:${a>.5?'#c8d8ff':'#4f8fff'};border-radius:4px">${v}%</td>`; }
+      else h+='<td style="color:#2a3040">—</td>';
+    }
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+
+function renderCohortCharts(){
+  const cols=['#4f8fff','#22d3a0','#a855f7','#f59e0b','#f43f5e','#06b6d4'];
+  const c1=document.getElementById('cohortLineChart');
+  if(c1){ if(C.cl) C.cl.destroy();
+    C.cl=new Chart(c1,{type:'line',data:{labels:Array.from({length:12},(_,i)=>`M${i}`),datasets:cohortMonths.map((m,i)=>({label:m,data:cohortRet[i],borderColor:cols[i],fill:false,tension:.3,pointRadius:2,borderWidth:1.5}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10},callback:v=>v+'%'},min:0,max:105}}}}); }
+  const c2=document.getElementById('m1RetentionChart');
+  if(c2){ if(C.m1) C.m1.destroy();
+    C.m1=new Chart(c2,{type:'bar',data:{labels:cohortMonths,datasets:[{data:[68,71,73,74,76,78],backgroundColor:cohortMonths.map((_,i)=>`rgba(79,143,255,${.4+i*.1})`),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#5a6178',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10},callback:v=>v+'%'},min:60,max:85}}}}); }
+  const c3=document.getElementById('cohortLTVChart');
+  if(c3){ if(C.ltv) C.ltv.destroy();
+    C.ltv=new Chart(c3,{type:'line',data:{labels:['M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11'],datasets:[{data:[284,520,742,924,1086,1228,1350,1456,1545,1620,1682,1840],borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',fill:true,tension:.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10},callback:v=>'$'+v}}}}}); }
+}
+
+// FUNNEL
+const funnelData={
+  main:[{l:'Website Visitors',n:48200,c:'rgba(79,143,255,.75)'},{l:'Sign-ups',n:29884,c:'rgba(124,58,237,.75)'},{l:'Trial Started',n:18316,c:'rgba(6,182,212,.75)'},{l:'Feature Activated',n:11482,c:'rgba(34,211,160,.75)'},{l:'Paid Conversion',n:8676,c:'rgba(34,211,160,.95)'}],
+  onboarding:[{l:'Account Created',n:29884,c:'rgba(79,143,255,.75)'},{l:'Email Verified',n:24820,c:'rgba(124,58,237,.75)'},{l:'Profile Complete',n:18120,c:'rgba(6,182,212,.75)'},{l:'First Action',n:12640,c:'rgba(34,211,160,.75)'},{l:'Day-7 Active',n:8940,c:'rgba(34,211,160,.95)'}],
+  checkout:[{l:'Cart View',n:22400,c:'rgba(79,143,255,.75)'},{l:'Checkout Start',n:16820,c:'rgba(124,58,237,.75)'},{l:'Payment Info',n:12480,c:'rgba(6,182,212,.75)'},{l:'Order Review',n:10240,c:'rgba(34,211,160,.75)'},{l:'Purchase',n:8676,c:'rgba(34,211,160,.95)'}]
+};
+let curFunnel='main';
+
+function updateFunnel(t){ curFunnel=t; renderFunnel(); }
+
+function renderFunnel(){
+  const s=funnelData[curFunnel], el=document.getElementById('funnelViz'); if(!el) return;
+  const mx=s[0].n;
+  el.innerHTML=s.map((x,i)=>{
+    const pct=(x.n/mx*100).toFixed(0);
+    const drop=i>0?((1-x.n/s[i-1].n)*100).toFixed(0)+'% drop':'';
+    return `<div class="funnel-stage"><div class="funnel-label-wrap"><div class="funnel-label">${x.l}</div><div class="funnel-count">${x.n.toLocaleString()}</div></div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${pct}%;background:${x.c}">${pct}%</div></div><div class="funnel-drop">${drop}</div></div>`;
+  }).join('');
+}
+
+function renderFunnelCharts(){
+  const s=funnelData.main;
+  const cr=s.map((x,i)=>i===0?100:+(x.n/s[i-1].n*100).toFixed(1));
+  const c1=document.getElementById('funnelBarChart');
+  if(c1){ if(C.fb) C.fb.destroy();
+    C.fb=new Chart(c1,{type:'bar',data:{labels:s.map(x=>x.l.split(' ')[0]),datasets:[{data:cr,backgroundColor:s.map(x=>x.c),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10},callback:v=>v+'%'},min:0,max:110},y:{grid:{display:false},ticks:{color:'#8b92a8',font:{size:10}}}}}}); }
+  const c2=document.getElementById('deviceChart');
+  if(c2){ if(C.dev) C.dev.destroy();
+    C.dev=new Chart(c2,{type:'doughnut',data:{labels:['Desktop','Mobile','Tablet'],datasets:[{data:[52,36,12],backgroundColor:['#4f8fff','#22d3a0','#f59e0b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}}); }
+  const c3=document.getElementById('sourceChart');
+  if(c3){ if(C.src) C.src.destroy();
+    C.src=new Chart(c3,{type:'doughnut',data:{labels:['Organic','Paid','Referral','Email'],datasets:[{data:[38,28,22,12],backgroundColor:['#4f8fff','#a855f7','#22d3a0','#f59e0b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}}); }
+  const c4=document.getElementById('timeChart');
+  if(c4){ if(C.time) C.time.destroy();
+    C.time=new Chart(c4,{type:'bar',data:{labels:['<1d','1-3d','4-7d','8-14d','15-30d','>30d'],datasets:[{data:[22,31,24,13,7,3],backgroundColor:'rgba(6,182,212,.65)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#5a6178',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:9}}}}}}); }
+  const c5=document.getElementById('funnelTrendChart');
+  if(c5){ if(C.ft) C.ft.destroy();
+    C.ft=new Chart(c5,{type:'line',data:{labels:['W1','W2','W3','W4','W5','W6','W7','W8'],datasets:[
+      {label:'V→S',data:[60,62,58,64,65,63,67,62],borderColor:'#4f8fff',fill:false,tension:.4,pointRadius:3},
+      {label:'S→T',data:[58,60,61,62,63,61,65,61],borderColor:'#22d3a0',fill:false,tension:.4,pointRadius:3},
+      {label:'T→P',data:[42,44,43,46,47,45,48,46],borderColor:'#a855f7',fill:false,tension:.4,pointRadius:3}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10},callback:v=>v+'%'}}}}}); }
+}
+
+// SEGMENTS
+function renderSegmentCharts(){
+  const sc=document.getElementById('scatterChart');
+  if(sc){ if(C.scatter) C.scatter.destroy();
+    const mk=(cx,cy,n,r,label,color)=>({label,backgroundColor:color+'cc',pointRadius:5,data:Array.from({length:n},()=>({x:+(cx+(Math.random()-.5)*r*2).toFixed(1),y:+(cy+(Math.random()-.5)*r*2).toFixed(1)}))});
+    C.scatter=new Chart(sc,{type:'scatter',data:{datasets:[mk(85,88,24,8,'Champions','#4f8fff'),mk(65,72,34,10,'Loyal','#22d3a0'),mk(50,45,22,10,'Potential','#f59e0b'),mk(25,62,18,9,'At Risk','#a855f7'),mk(15,20,16,9,'Lost','#f43f5e')]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e2230',bodyColor:'#f0f2f8',callbacks:{label:c=>`${c.dataset.label}: R=${c.parsed.x} F=${c.parsed.y}`}}},scales:{x:{title:{display:true,text:'Recency Score',color:'#5a6178',font:{size:11}},grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}},min:0,max:100},y:{title:{display:true,text:'Frequency Score',color:'#5a6178',font:{size:11}},grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}},min:0,max:100}}}}); }
+  const sb=document.getElementById('segmentBarChart');
+  if(sb){ if(C.segb) C.segb.destroy();
+    C.segb=new Chart(sb,{type:'bar',data:{labels:['Champions','Loyal','Potential','At Risk','Lost'],datasets:[{data:[2860,3640,2470,2080,1950],backgroundColor:['#4f8fff','#22d3a0','#f59e0b','#a855f7','#f43f5e'],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#5a6178',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:10}}}}}}); }
+  const rc=document.getElementById('recencyChart');
+  if(rc){ if(C.rec) C.rec.destroy();
+    C.rec=new Chart(rc,{type:'bar',data:{labels:['0-7d','8-30d','31-60d','61-90d','90d+'],datasets:[{data:[28,34,18,12,8],backgroundColor:'rgba(79,143,255,.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#5a6178',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:9}}}}}}); }
+  const fc=document.getElementById('freqChart');
+  if(fc){ if(C.freq) C.freq.destroy();
+    C.freq=new Chart(fc,{type:'bar',data:{labels:['1x','2-3x','4-6x','7-12x','12x+'],datasets:[{data:[22,31,24,15,8],backgroundColor:'rgba(34,211,160,.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#5a6178',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:9}}}}}}); }
+  const mc=document.getElementById('monetaryChart');
+  if(mc){ if(C.mon) C.mon.destroy();
+    C.mon=new Chart(mc,{type:'bar',data:{labels:['<$100','$100-500','$500-1K','$1K-5K','$5K+'],datasets:[{data:[18,29,26,20,7],backgroundColor:'rgba(168,85,247,.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#5a6178',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5a6178',font:{size:9}}}}}}); }
+}
+
+window.addEventListener('load',()=>{
+  renderRevenueChart(); renderDonutChart(); renderStackedBar();
+  renderSparkline('sp1',[320,358,401,382,445,490,468,512,538],'#4f8fff');
+  renderSparkline('sp2',[5.8,5.9,6.1,6.0,6.4,6.5,6.7,6.8,6.8],'#22d3a0');
+  renderSparkline('sp3',[3.1,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.3],'#f59e0b');
+  renderSparkline('sp4',[240,248,255,262,268,274,278,281,284],'#a855f7');
+  renderSparkline('sp5',[1920,1900,1880,1870,1862,1855,1848,1844,1840],'#06b6d4');
+});
+</script>
+</body>
+</html>
